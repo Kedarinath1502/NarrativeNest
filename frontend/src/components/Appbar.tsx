@@ -62,10 +62,16 @@ function Avatar({ name }: { name: string }) {
             </div>
             {showDropdown && (
                 <div className="absolute z-10 right-0 mt-2 w-40 bg-white rounded-md shadow-lg">
+                    <div className="p-2 hover:bg-gray-100 cursor-pointer" onClick={() => {
+                        navigate('/myblogs')
+                    }}>
+                        Myblogs
+                    </div>
                     <div className="p-2 hover:bg-gray-100 cursor-pointer" onClick={handleLogout}>
                         Logout
                     </div>
                 </div>
+
             )}
         </div>
     );

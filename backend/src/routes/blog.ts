@@ -99,8 +99,76 @@ blogRouter.put('/', async (c) => {
     }
 
 })
+blogRouter.delete('/delete/bulk', async (c) => {
+    const prisma = new PrismaClient({
+        datasourceUrl: c.env.DATABASE_URL
+    }).$extends(withAccelerate())
+    try {
+        await prisma.post.deleteMany({})
+        return c.text("deleted all posts successfully")
+    } catch (error) {
+        c.status(404)
+        return c.json({
+            error
+        })
+    }
+})
+blogRouter.delete("/delete/:id", async (c) => {
+    const prisma = new PrismaClient({
+        datasourceUrl: c.env.DATABASE_URL
+    }).$extends(withAccelerate())
+    try {
+        const blogid = c.req.param("id")
+        await prisma.post.delete({
+            where: {
+                id: blogid
+            }
+        })
+        return c.text("post deleted successfully")
+    } catch (error) {
+        c.status(404)
+        return c.json({ error })
+    }
 
+})
 
+blogRouter.get('/myblogs', async (c) => {
+    const prisma = new PrismaClient({
+        datasourceUrl: c.env.DATABASE_URL
+    }).$extends(withAccelerate())
+    try {
+        const authorId = c.get("UserId")
+        const myblogs = await prisma.post.findMany({
+            where: {
+                authorId: authorId
+            }, orderBy: {
+                createdAt: 'desc'
+            },
+            select: {
+                title: true,
+                content: true,
+                id: true,
+                createdAt: true,
+                author: {
+                    select: {
+                        name: true
+                    }
+                }
+            }
+        })
+        const formattedBlogs = myblogs.map(blog => ({
+            ...blog,
+            createdAt: format(new Date(blog.createdAt), 'dd MMMM yyyy')
+        }));
+        return c.json({
+            blog: formattedBlogs
+        })
+    } catch (error) {
+        c.status(404)
+        return c.json({ error })
+    }
+
+})
 blogRouter.get('/bulk', async (c) => {
     const prisma = new PrismaClient({
         datasourceUrl: c.env.DATABASE_URL
